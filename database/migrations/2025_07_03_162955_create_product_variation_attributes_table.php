@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('product_variation_id')->constrained()->onDelete('cascade');
             $table->foreignId('product_attribute_id')->constrained()->onDelete('cascade');
-            $table->string('value'); // for exampl: 'Large', 'Red', 'Cotton'
+            $table->string('value'); // for exampl: 'Large', 'Red'
             $table->timestamps();
 
             $table->index('value');
