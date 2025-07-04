@@ -1,61 +1,161 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Product Management API (Lamma backend test)
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
 
-## About Laravel
+## Database Schema
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+Our database uses a normalized structure to handle products efficiently:
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+**products** - Main products table
+- Basic info: name, description, SKU, price
+- Type: "simple" or "variable"
+- Active status
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+**product_variations** - For variable products only
+- Each variation has its own SKU and price
+- Linked to main product
 
-## Learning Laravel
+**product_attributes** - Attribute types (size, color, etc.)
+- Just the attribute names like "size", "color"
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+**product_variation_attributes** - Links variations to their attributes
+- Stores actual values like "Large", "Red"
+- Each variation can have multiple attributes
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+**Why this approach scales well:** Instead of storing attributes as JSON (which can't be indexed), we use separate tables that allow fast database queries, proper indexing, and efficient filtering even with millions of products.
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## Business Logic Assumptions
 
-## Laravel Sponsors
+- Simple products have a single price and SKU
+- Variable products don't require a main price (variations handle pricing)
+- Each product variation must have a unique SKU
+- Attribute names are case-insensitive and stored in lowercase
+- Deleting a product automatically removes all its variations and attributes
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+## Setup Instructions
 
-### Premium Partners
+1. **Install dependencies**
+   ```bash
+   composer install
+   ```
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+2. **Set up environment**
+   ```bash
+   cp .env.example .env
+   php artisan key:generate
+   ```
 
-## Contributing
+3. **Configure database**
+   Update `.env` with your database info:
+   ```
+   DB_DATABASE=your_database_name
+   DB_USERNAME=your_username
+   DB_PASSWORD=your_password
+   ```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+4. **Run migrations and seed data**
+   ```bash
+   php artisan migrate
+   php artisan db:seed
+   ```
 
-## Code of Conduct
+5. **Start the server**
+   ```bash
+   php artisan serve
+   ```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## Testing with Postman
 
-## Security Vulnerabilities
+**Note:** A Postman collection file should be attached upon submission for easy testing of all endpoints.
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+### 1. Get all products
+```
+GET http://localhost:8000/api/products
+```
 
-## License
+### 2. Get products with filters
+```
+GET http://localhost:8000/api/products?type=variable
+GET http://localhost:8000/api/products?name=shirt
+GET http://localhost:8000/api/products?min_price=20&max_price=50
+```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+### 3. Create a simple product
+```
+POST http://localhost:8000/api/products
+Content-Type: application/json
+
+{
+    "name": "Wireless Mouse",
+    "description": "Ergonomic wireless mouse",
+    "sku": "WM-001",
+    "type": "simple",
+    "price": 29.99,
+    "is_active": true
+}
+```
+
+### 4. Create a variable product
+```
+POST http://localhost:8000/api/products
+Content-Type: application/json
+
+{
+    "name": "T-Shirt",
+    "description": "Cotton t-shirt",
+    "sku": "TS-001",
+    "type": "variable",
+    "is_active": true,
+    "variations": [
+        {
+            "sku": "TS-001-S-RED",
+            "price": 25.00,
+            "attributes": [
+                {"name": "size", "value": "S"},
+                {"name": "color", "value": "Red"}
+            ]
+        },
+        {
+            "sku": "TS-001-M-RED",
+            "price": 25.00,
+            "attributes": [
+                {"name": "size", "value": "M"},
+                {"name": "color", "value": "Red"}
+            ]
+        }
+    ]
+}
+```
+
+### 5. Update a product
+```
+PUT http://localhost:8000/api/products/1
+Content-Type: application/json
+
+{
+    "name": "Updated Product Name",
+    "price": 35.99
+}
+```
+
+### 6. Delete a product
+```
+DELETE http://localhost:8000/api/products/1
+```
+
+## Important Notes
+
+- Always include `Accept: application/json` in your Postman headers
+- The seeder creates sample products you can test with
+- Variable products don't need a main price - variations have their own prices
+- Simple products just need basic info, no variations
+
+## Available Endpoints
+
+- `GET /api/products` - List products with optional filters
+- `GET /api/products/{id}` - Get single product
+- `POST /api/products` - Create new product
+- `PUT /api/products/{id}` - Update product
+- `DELETE /api/products/{id}` - Delete product
+
+**Note:** Authentication is not implemented as it was not required in the task specification. All endpoints are publicly accessible.
+
