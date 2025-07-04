@@ -2,7 +2,7 @@
 
 namespace Database\Factories;
 
-use App\ProductType;
+use App\Enums\ProductType;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**

@@ -5,7 +5,7 @@ namespace App\Services;
 use App\Models\Product;
 use App\Models\ProductAttribute;
 use App\Models\ProductVariation;
-use App\ProductType;
+use App\Enums\ProductType;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;

@@ -159,3 +159,14 @@ DELETE http://localhost:8000/api/products/1
 
 **Note:** Authentication is not implemented as it was not required in the task specification. All endpoints are publicly accessible.
 
+## Error Handling
+
+The API uses global exception handling to ensure all error responses follow a consistent format. This is configured in `bootstrap/app.php` and automatically handles:
+
+- **404 errors** (product not found): `{"success": false, "message": "Resource not found"}`
+- **422 errors** (validation failed): `{"success": false, "message": "Validation failed", "errors": {...}}`
+- **500 errors** (server errors): Handled by controllers with consistent format
+
+This approach ensures all API responses follow the same structure without needing to modify individual controllers for centralized exception handling.
+
+

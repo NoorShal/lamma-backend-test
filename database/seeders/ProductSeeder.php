@@ -5,7 +5,7 @@ namespace Database\Seeders;
 use App\Models\Product;
 use App\Models\ProductAttribute;
 use App\Models\ProductVariation;
-use App\ProductType;
+use App\Enums\ProductType;
 use Illuminate\Database\Seeder;
 
 class ProductSeeder extends Seeder
