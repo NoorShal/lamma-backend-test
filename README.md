@@ -63,6 +63,11 @@ Our database uses a normalized structure to handle products efficiently:
    php artisan serve
    ```
 
+6. **Run tests** (optional)
+   ```bash
+   php artisan test
+   ```
+
 ## Testing with Postman
 
 **Note:** A Postman collection file should be attached upon submission for easy testing of all endpoints.
